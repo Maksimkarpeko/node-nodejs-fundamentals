@@ -13,6 +13,7 @@ const lineNumberer = () => {
       });
 
       callback(null, lines.join("\n"));
+      //
     },
   });
 
