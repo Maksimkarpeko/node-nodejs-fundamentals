@@ -1,7 +1,9 @@
 import { createHash } from "crypto";
 import fsPromise from "fs/promises";
+import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
+import { pipeline } from "stream/promises";
 
 const verify = async () => {
   // Write your code here
@@ -21,16 +23,20 @@ const verify = async () => {
     console.log("FS operation failed");
   }
   for (let [file, hash] of Object.entries(checksums)) {
-    const newHash = createHash("sha256");
-    newHash.update(file);
-    const actualHash = newHash.digest("hex");
+    try {
+      const newHash = createHash("sha256");
+      const fileReadStream = fs.createReadStream(file);
+      await pipeline(fileReadStream, newHash);
+      const actualHash = newHash.digest("hex");
 
-    if (actualHash === hash) {
-      console.log(`${file} — OK`);
-    } else {
+      if (actualHash === hash) {
+        console.log(`${file} — OK`);
+      } else {
+        console.log(`${file} — FAIL`);
+      }
+    } catch {
       console.log(`${file} — FAIL`);
     }
   }
 };
-
 await verify();
